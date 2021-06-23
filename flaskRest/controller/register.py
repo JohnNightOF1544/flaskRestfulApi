@@ -1,23 +1,22 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_restful import Resource, abort, marshal_with
+from flaskRest.authorization.auth import token_required
 from flaskRest.models.account import Account, db
 from flaskRest.argumentParsing_dataFormating.accountOtherPaser import account_OtherParser, account_UPDATE_parser, account_OtherFields
 from flaskRest.argumentParsing_dataFormating.accountParser import account_login, account_fields
 
 
 class Todo(Resource):
-	# @token_required
+	@token_required
 	@marshal_with(account_fields)
 	def get(self, account_id):
 		args_parser = account_login.parse_args()
-
 		account_query = Account.query.filter_by(id=account_id).first()
-		return account_query
+		return account_query, 200
 
-	# @token_required
+	@token_required
 	@marshal_with(account_OtherParser)
 	def put(self, account_id):
-	
 		args_parser = account_UPDATE_parser.parse_args() 
 		result = Account.query.filter_by(id=account_id).first()
 		if not result:
@@ -34,7 +33,7 @@ class Todo(Resource):
 		
 		return result, 201
 
-	# @token_required
+	@token_required
 	def delete(self, account_id):
 		del_result = Account.query.filter_by(id=account_id).first()
 		if not del_result:
