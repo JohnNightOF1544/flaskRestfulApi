@@ -1,28 +1,36 @@
 from flaskRest.app import app
-from flask import Flask, request, make_response, url_for, render_template
+from flask import Flask, request, make_response, url_for, render_template, jsonify
 from flask_restful import Resource, abort, marshal_with
 from flaskRest.models.account import Account, db
 from flaskRest.argumentParsing_dataFormating.accountParser import account_fields, account_login, account_parser, login_fields
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
-import jwt
 import datetime
+from flask_jwt_extended import (
+    create_access_token, create_refresh_token, get_jwt, 
+    unset_jwt_cookies, set_access_cookies, JWTManager, jwt_required, set_refresh_cookies
+)
+
+
 
 
 class TodoList(Resource):
+    @jwt_required(refresh=True)
     @marshal_with(account_fields)
     def get(self):
-        all_account = Account.query.all()
-        return all_account, 200
-        # return  make_response(render_template('login.html', all_account=all_account)) #can be used
+        if request.method == 'GET':
+            all_account = Account.query.all()
+            return all_account, 200
+
 
     @marshal_with(account_fields)
     def post(self):
-        args_parser = account_parser.parse_args(strict=True)
 
+        args_parser = account_parser.parse_args(strict=True)
+  
         hashed_password = generate_password_hash(
-            args_parser['password'], 
-            method='sha512'
+        args_parser['password'], 
+        method='sha512'
         )
 
         add_account = Account(
@@ -32,46 +40,81 @@ class TodoList(Resource):
             course=args_parser['course'], 
             password=hashed_password
         )
+
+        
+
         add_account.add_db_account()
         return add_account, 201
 
 class AccountLogin(Resource):
-    
-    def get(self):
-        """
-        renders a simple HTML with email and password in a form.
-        """
-        return make_response(render_template('authlogin.html'))
-    @marshal_with(login_fields)
+
     def post(self):
+        name = request.json.get("name", None)
+        password = request.json.get("password", None)
 
-        args_login = account_login.parse_args(strict=True)
+        user_login = Account.query.filter_by(name=name).first()
 
-        add_user = Account.query.filter_by(name=args_login['name']).first()
+        if not user_login:
+            return {'message': 'Please input exact {} or {} correctly from name'.format('name', 'password')}
 
-        if not add_user:
-            return make_response(
-                'Please Input your username or password', 401,
-                {'WWW.Authentication': 'Basic realm: "login required"'}
-            )
+        check_pass = check_password_hash(user_login.password, password)
 
-        if check_password_hash(add_user.password, args_login['password']):
+        if not check_pass:
+            return {'message': 'Please input {} or {} correctly from password'.format('name', 'password')}
 
-            token = jwt.encode({
-                'public_id': add_user.public_id,
-                'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-                },
-                app.config['SECRET_KEY'])
+        access_token = create_access_token(identity=user_login, fresh = True)
+        refresh_token = create_refresh_token(identity=user_login)
+        
+        resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
 
-            print({'token': token})
-            # return {'token' : token.decode('UTF-8')}
-            # return make_response({'token' : token})
-            # return make_response({'result': 'success', 'token': token}, 200, {'authorization': token} )
-        return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
 
+        # responce = jsonify({'access_token' : access_token, 'refresh_token': refresh_token})
+        return resp
 
 
 
+    # args_login = account_login.parse_args(strict=True)
+    # login_user = Account.query.filter_by(name=args_login['name']).first()
+
+    # if not login_user:
+    #     return {'message': 'Please input exact {} or {} correctly from name'.format('name', 'password')}
+
+    # if login_user:
+
+    #     check_pass = check_password_hash(login_user.password, args_login['password'])
+
+    #     if not check_pass:
+    #         return {'message': 'Please input {} or {} correctly from password'.format('name', 'password')}
+
+    #     if check_pass:
+    #         access_token = create_access_token(identity=login_user, fresh=True)
+    #         refresh_token = create_refresh_token(identity=login_user)
+    #         resp = jsonify({"message": True})
+
+    #         return {'access_token' : access_token, 'refresh_token': refresh_token}, 200
+
+
+
+
+
+
+        # name = request.json.get("name", None)
+        # password = request.json.get("password", None)
+
+        # login_user = Account.query.filter_by(name=name).first()
+        # if not login_user:
+        #     return {'message': 'Please input {} correctly'.format('name')}
+
+        # check_pass = check_password_hash(login_user.password, password)
+
+        # if not check_pass:
+        #     return {'message': 'Please input {} correctly'.format('password')}
+
+
+        # access_token = create_access_token(identity=login_user)
+        # return {'access_token': access_token}
 
 
 
@@ -79,55 +122,5 @@ class AccountLogin(Resource):
 
 
 
-# class LoginAPI(Resource):
-#     # added as /login
 
-#     def get(self):
-#         """
-#         renders a simple HTML with email and password in a form.
-#         """
-#         headers = {'Content-Type': 'text/html'}
-#         return make_response(render_template('login.html'), 200, headers)
-
-#     def post(self):
-
-#         email = request.form.get('email')
-#         password = request.form.get('password')
-
-#         # assuming the validation has passed.
-
-#         payload = {
-#             'user_id': query_user.id,
-#             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-#         }
-
-#         token = jwt\
-#             .encode(payload, current_app.config['JWT_SECRET'], current_app.config['JWT_ALGORITHM'])\
-#             .decode('utf-8')
-
-#         # Is below the right way to set the token into header to be used in subsequent request?
-#         # request.headers.authorization = token
-
-#         # when {'authorization': token} below as a header, the header only shows up for /login not for any subsequent request.
-
-#         return make_response({'result': 'success', 'token': token}, 200, {'authorization': token} )
-
-
-# class ProtectedAPI(Resource):
-#     @check_auth
-#     def get(self):
-
-#         return jsonify({'result': 'success', 'message': 'this is a protected view.'})
-
-
-# decorator to check auth and give access to /protected
-# def check_auth(f):
-
-#     @wraps(f)
-#     def authentication(*args, **kws):
-#         # always get a None here.
-#         jwt_token = request.headers.get('authorization', None)
-#         payload = jwt.decode(jwt_token, 'secret_key', algorithms='HS512'])
-#         # other validation below skipped.
-#     return f(*args, **kws)
-# return authentication
+            

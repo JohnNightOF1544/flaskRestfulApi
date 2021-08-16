@@ -13,16 +13,16 @@ flask_session/
 .gitignore.swp
 
 # !migrations/
-migrations/*
+# migrations/*
 
 # flaskRest/models/
-flaskRest/models/*
+# flaskRest/models/*
 
 # argumentParsing_and_dataFormating
-flaskRest/argumentParsing_dataFormating/*
+# flaskRest/argumentParsing_dataFormating/*
 
-manage.py
-config.py
+# manage.py
+# config.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
