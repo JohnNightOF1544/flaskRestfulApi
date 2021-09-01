@@ -65,56 +65,15 @@ class AccountLogin(Resource):
         access_token = create_access_token(identity=user_login, fresh = True)
         refresh_token = create_refresh_token(identity=user_login)
         
-        resp = jsonify({'login': True, 'access_token': access_token, 'refresh_token': refresh_token})
+        resp = jsonify({'access_token': access_token, 'refresh_token': refresh_token})
 
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
 
-        # responce = jsonify({'access_token' : access_token, 'refresh_token': refresh_token})
         return resp
 
 
 
-    # args_login = account_login.parse_args(strict=True)
-    # login_user = Account.query.filter_by(name=args_login['name']).first()
-
-    # if not login_user:
-    #     return {'message': 'Please input exact {} or {} correctly from name'.format('name', 'password')}
-
-    # if login_user:
-
-    #     check_pass = check_password_hash(login_user.password, args_login['password'])
-
-    #     if not check_pass:
-    #         return {'message': 'Please input {} or {} correctly from password'.format('name', 'password')}
-
-    #     if check_pass:
-    #         access_token = create_access_token(identity=login_user, fresh=True)
-    #         refresh_token = create_refresh_token(identity=login_user)
-    #         resp = jsonify({"message": True})
-
-    #         return {'access_token' : access_token, 'refresh_token': refresh_token}, 200
-
-
-
-
-
-
-        # name = request.json.get("name", None)
-        # password = request.json.get("password", None)
-
-        # login_user = Account.query.filter_by(name=name).first()
-        # if not login_user:
-        #     return {'message': 'Please input {} correctly'.format('name')}
-
-        # check_pass = check_password_hash(login_user.password, password)
-
-        # if not check_pass:
-        #     return {'message': 'Please input {} correctly'.format('password')}
-
-
-        # access_token = create_access_token(identity=login_user)
-        # return {'access_token': access_token}
 
 
 

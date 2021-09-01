@@ -21,7 +21,7 @@ class Todo(Resource):
 	@jwt_required(refresh=True)
 	# @token_required
 	@marshal_with(account_fields)
-	def get(self, account_id):
+	def get(self, account_id: int):
 
 		identity = get_jwt_identity()
 
@@ -44,7 +44,7 @@ class Todo(Resource):
 
 	@jwt_required(refresh=True)
 	@marshal_with(account_OtherFields)
-	def put(self, account_id):
+	def put(self, account_id: int):
 
 		identity = get_jwt_identity()
 		print(identity)
@@ -72,7 +72,7 @@ class Todo(Resource):
 	
 	@jwt_required(refresh=True)
 	@marshal_with(account_fields)
-	def delete(self, account_id):
+	def delete(self, account_id: int):
 		identity = get_jwt_identity()
 
 		del_result = Account.query.filter_by(public_id=identity).first()
