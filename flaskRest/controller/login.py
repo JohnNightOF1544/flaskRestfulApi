@@ -18,8 +18,11 @@ class TodoList(Resource):
     @jwt_required(refresh=True)
     @marshal_with(account_fields)
     def get(self):
+
+        all_account = Account.query.all()
+
         if request.method == 'GET':
-            all_account = Account.query.all()
+            
             return all_account, 200
 
 
@@ -33,6 +36,7 @@ class TodoList(Resource):
         method='sha512'
         )
 
+
         add_account = Account(
             public_id=str(uuid.uuid4()), 
             name=args_parser['name'], 
@@ -41,18 +45,20 @@ class TodoList(Resource):
             password=hashed_password
         )
 
-        
+        if request.method == 'POST':
 
-        add_account.add_db_account()
-        return add_account, 201
+            add_account.add_db_account()
+            return add_account, 201
 
 class AccountLogin(Resource):
 
     def post(self):
+
         name = request.json.get("name", None)
         password = request.json.get("password", None)
 
         user_login = Account.query.filter_by(name=name).first()
+
 
         if not user_login:
             return {'message': 'Please input exact {} or {} correctly from name'.format('name', 'password')}
@@ -62,15 +68,17 @@ class AccountLogin(Resource):
         if not check_pass:
             return {'message': 'Please input {} or {} correctly from password'.format('name', 'password')}
 
-        access_token = create_access_token(identity=user_login, fresh = True)
-        refresh_token = create_refresh_token(identity=user_login)
-        
-        resp = jsonify({'access_token': access_token, 'refresh_token': refresh_token})
+        if request.method == 'POST':
 
-        set_access_cookies(resp, access_token)
-        set_refresh_cookies(resp, refresh_token)
+            access_token = create_access_token(identity=user_login, fresh = True)
+            refresh_token = create_refresh_token(identity=user_login)
+            
+            resp = jsonify({'access_token': access_token, 'refresh_token': refresh_token})
 
-        return resp
+            set_access_cookies(resp, access_token)
+            set_refresh_cookies(resp, refresh_token)
+
+            return resp
 
 
 
