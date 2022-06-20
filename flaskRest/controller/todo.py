@@ -1,8 +1,8 @@
-from flaskRest.app import app, jwt
+from flaskRest.app import app, db
 from flask import Flask, request, redirect, jsonify, url_for
 from flask_restful import Resource, abort, marshal_with
 # from flaskRest.authorization.auth import token_required
-from flaskRest.models.account import Account, db
+from flaskRest.models.account import Account
 from flaskRest.argumentParsing_dataFormating.accountOtherPaser import account_OtherParser, account_UPDATE_parser, account_OtherFields
 from flaskRest.argumentParsing_dataFormating.accountParser import account_login, account_fields
 from flask_jwt_extended import ( 

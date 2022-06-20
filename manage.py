@@ -14,3 +14,17 @@ if __name__== '__main__':
 
 
 
+# from flask.cli 
+# import FlaskGroup
+# from flaskRest.app import app
+# cli = FlaskGroup(app)
+
+
+# @cli.command(‘test’)
+# @click.argument(‘test_case’, default=’test*.py’)
+# def test(test_case=’test*.py’):
+
+
+
+# if __name__ == "__main__":
+# cli()

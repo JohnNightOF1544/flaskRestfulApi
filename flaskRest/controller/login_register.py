@@ -1,7 +1,7 @@
-from flaskRest.app import app
+from flaskRest.app import app, db
 from flask import Flask, request, make_response, url_for, render_template, jsonify
 from flask_restful import Resource, abort, marshal_with
-from flaskRest.models.account import Account, db
+from flaskRest.models.account import Account
 from flaskRest.argumentParsing_dataFormating.accountParser import account_fields, account_login, account_parser, login_fields
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -10,9 +10,6 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token, get_jwt, 
     unset_jwt_cookies, set_access_cookies, JWTManager, jwt_required, set_refresh_cookies
 )
-
-
-
 
 class TodoList(Resource):
     @jwt_required(refresh=True)
@@ -59,7 +56,6 @@ class AccountLogin(Resource):
 
         user_login = Account.query.filter_by(name=name).first()
 
-
         if not user_login:
             return {'message': 'Please input exact {} or {} correctly from name'.format('name', 'password')}
 
@@ -73,21 +69,9 @@ class AccountLogin(Resource):
             access_token = create_access_token(identity=user_login, fresh = True)
             refresh_token = create_refresh_token(identity=user_login)
             
-            resp = jsonify({'access_token': access_token, 'refresh_token': refresh_token})
+            resp = jsonify({'access_token': access_token, 'refresh_token': refresh_token, 'Login': True})
 
             set_access_cookies(resp, access_token)
             set_refresh_cookies(resp, refresh_token)
 
             return resp
-
-
-
-
-
-
-
-
-
-
-
-            
